@@ -1,14 +1,12 @@
+apiVersion: "1.0"
 services:
   - type: web
     name: hist-dss
     region: omaha
     plan: free
     env: docker
-    repo: .
     dockerfilePath: ./Dockerfile
-    dockerContext: .
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 3 "app:create_app()"
+    autoDeploy: true
     envVars:
       - key: SECRET_KEY
         generateValue: true
