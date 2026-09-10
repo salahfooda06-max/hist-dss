@@ -78,6 +78,13 @@
         </a>
         {% endif %}
 
+        {% if current_user.role in ['Administrator', 'Institute Director'] %}
+        <a href="{{ url_for('auth.users') }}" class="nav-link {% if request.path == url_for('auth.users') %}active{% endif %}">
+            <i class="bi bi-people"></i>
+            User Management
+        </a>
+        {% endif %}
+
         {% if current_user.role == 'Administrator' %}
         <a href="{{ url_for('main.retrain') }}" class="nav-link {% if request.path == url_for('main.retrain') %}active{% endif %}">
             <i class="bi bi-arrow-repeat"></i>
@@ -188,6 +195,11 @@
                 {% if current_user.role in ['Administrator', 'Institute Director'] %}
                 <a href="{{ url_for('main.audit') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.audit') %}active{% endif %}">
                     <i class="bi bi-person-check"></i> Audit Log
+                </a>
+                {% endif %}
+                {% if current_user.role in ['Administrator', 'Institute Director'] %}
+                <a href="{{ url_for('auth.users') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('auth.users') %}active{% endif %}">
+                    <i class="bi bi-people"></i> Users
                 </a>
                 {% endif %}
                 {% if current_user.role == 'Administrator' %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-people"></i> User Management</h2>
+            <p class="text-muted">Manage user accounts and activation status</p>
+        </div>
+        <a href="{{ url_for('auth.register_user') }}" class="btn btn-primary-custom">
+            <i class="bi bi-person-plus"></i> Register New User
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td>{{ u.user_id }}</td>
+                            <td>{{ u.name }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'primary' if u.role == 'Administrator' else 'info' if u.role in ['Extension Officer', 'Faculty Lead'] else 'warning' if u.role == 'Institute Director' else 'secondary' }}">
+                                    {{ u.role }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if u.is_active %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary"><i class="bi bi-pause-circle"></i> Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.last_login.strftime('%Y-%m-%d %H:%M') if u.last_login else 'Never' }}</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('auth.edit_user', user_id=u.user_id) }}" class="btn btn-outline-secondary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('auth.toggle_user', user_id=u.user_id) }}" style="display:inline">
+                                        {% if u.is_active and u.role != 'Administrator' %}
+                                        <button type="submit" class="btn btn-outline-warning" title="Deactivate" onclick="return confirm('Deactivate user {{ u.name }}?')">
+                                            <i class="bi bi-pause"></i>
+                                        </button>
+                                        {% else %}
+                                        <button type="submit" class="btn btn-outline-success" title="Activate" {% if u.role == 'Administrator' %}disabled{% endif %} onclick="return confirm('Activate user {{ u.name }}?')">
+                                            <i class="bi bi-play"></i>
+                                        </button>
+                                        {% endif %}
+                                    </form>
+                                    {% if u.role != 'Administrator' %}
+                                    <form method="POST" action="{{ url_for('auth.delete_user', user_id=u.user_id) }}" style="display:inline">
+                                        <button type="submit" class="btn btn-outline-danger" title="Delete" onclick="return confirm('Delete user {{ u.name }}? This cannot be undone.')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No users found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

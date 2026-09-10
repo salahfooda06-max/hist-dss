@@ -35,6 +35,18 @@ def migrate_database(app):
                 except Exception as e:
                     print(f'Migration warning: {e}')
 
+        if 'user' in inspector.get_table_names():
+            user_columns = [col['name'] for col in inspector.get_columns('user')]
+            if 'is_active' not in user_columns:
+                try:
+                    with db.engine.connect() as conn:
+                        conn.execute(text('ALTER TABLE "user" ADD COLUMN is_active BOOLEAN DEFAULT 0 NOT NULL'))
+                        conn.commit()
+                        conn.execute(text('UPDATE "user" SET is_active = 1'))
+                        conn.commit()
+                except Exception as e:
+                    print(f'Migration warning (is_active): {e}')
+
 def create_app(config_name=None):
     app = Flask(__name__, instance_relative_config=True,
                 static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static'),
@@ -58,7 +70,8 @@ def create_app(config_name=None):
                     name=f'{role} User',
                     role=role,
                     email=f'{role.lower().replace(" ", ".")}@hist.edu.ly',
-                    password_hash=hash_password('password123')
+                    password_hash=hash_password('password123'),
+                    is_active=True
                 )
                 db.session.add(user)
         db.session.commit()

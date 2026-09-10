@@ -64,6 +64,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     last_login = db.Column(db.DateTime)
+    is_active = db.Column(db.Boolean, default=False, nullable=False)
     
     def get_id(self):
         return str(self.user_id)

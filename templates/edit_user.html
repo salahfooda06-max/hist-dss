@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block page_title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-pencil"></i> Edit User</h2>
+            <p class="text-muted">Modify user details for {{ user.name }}</p>
+        </div>
+        <a href="{{ url_for('auth.users') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Users
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Role</label>
+                        <select name="role" class="form-select" required>
+                            <option value="Administrator" {% if user.role == 'Administrator' %}selected{% endif %}>Administrator</option>
+                            <option value="Extension Officer" {% if user.role == 'Extension Officer' %}selected{% endif %}>Extension Officer</option>
+                            <option value="Faculty Lead" {% if user.role == 'Faculty Lead' %}selected{% endif %}>Faculty Lead</option>
+                            <option value="Institute Director" {% if user.role == 'Institute Director' %}selected{% endif %}>Institute Director</option>
+                            <option value="IT Infrastructure Lead" {% if user.role == 'IT Infrastructure Lead' %}selected{% endif %}>IT Infrastructure Lead</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check">
+                            {% if user.is_active %}
+                            <input type="checkbox" class="form-check-input" id="is_active" checked disabled>
+                            <label class="form-label" for="is_active" style="margin-left: 1.5rem;">Active</label>
+                            {% else %}
+                            <input type="checkbox" class="form-check-input" id="is_active" disabled>
+                            <label class="form-label" for="is_active" style="margin-left: 1.5rem;">Inactive</label>
+                            {% endif %}
+                            <small class="text-muted d-block mt-1">Use the activate/deactivate button on the Users page to change this.</small>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Password (leave blank to keep current)</label>
+                        <input type="password" name="password" class="form-control" placeholder="New password" minlength="6">
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('auth.users') }}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary-custom">
+                        <i class="bi bi-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
