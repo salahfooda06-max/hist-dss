@@ -19,3 +19,5 @@ HIST_DSS_Portable_v1.0.zip
 *.egg-info/
 deploy-package.zip
 installer.iss
+.tmp_*.py
+NUL
