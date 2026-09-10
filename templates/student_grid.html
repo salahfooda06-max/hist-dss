@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title"><i class="bi bi-grid-1x2"></i> Students</h1>
+</div>
+
+<!-- Search -->
+<div class="card-custom animate-fade-in mb-4">
+    <div class="card-header-custom">
+        <span><i class="bi bi-search"></i> Search Students</span>
+    </div>
+    <div class="card-body-custom">
+        <form method="GET" action="{{ url_for('main.student_grid') }}" class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control-custom" placeholder="Search for a student (name, ID, program)..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary-custom btn-custom w-100">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Students Grid -->
+<div class="card-custom animate-fade-in">
+    <div class="card-header-custom">
+        <span><i class="bi bi-people"></i> Student List</span>
+        <span class="text-muted small">Students Count: {{ pagination.total }}</span>
+    </div>
+    <div class="card-body-custom p-0">
+        <div class="table-responsive">
+            <table class="table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Program</th>
+                        <th>GPA</th>
+                        <th>Status</th>
+                        <th>Attendance</th>
+                        <th>Financial Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for student in students %}
+                    <tr>
+                        <td class="fw-semibold">{{ student.student_id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-avatar-sm">{{ student.name[0] if student.name else 'U' }}</div>
+                                {{ student.name }}
+                            </div>
+                        </td>
+                        <td>{{ student.program or '-' }}</td>
+                        <td>
+                            <span class="badge badge-{{ 'danger' if student.gpa < 2.0 else 'warning' if student.gpa < 3.0 else 'success' }}">
+                                {{ student.gpa }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if student.status == 'active' %}
+                                <span class="badge badge-success"><i class="bi bi-check-circle me-1"></i>Active</span>
+                            {% elif student.status == 'suspended' %}
+                                <span class="badge badge-danger"><i class="bi bi-x-circle me-1"></i>Suspended</span>
+                            {% else %}
+                                <span class="badge badge-gray"><i class="bi bi-circle me-1"></i>{{ student.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress-custom" style="width: 80px; height: 8px;">
+                                    <div class="progress-bar-custom" style="width: {{ (student.attendance_rate * 100)|round(0) }}%;"></div>
+                                </div>
+                                <span class="small">{{ (student.attendance_rate * 100)|round(0) }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if student.financial_status == 1 %}
+                                <span class="badge badge-warning"><i class="bi bi-exclamation-triangle me-1"></i>Needs Support</span>
+                            {% else %}
+                                <span class="badge badge-success"><i class="bi bi-check me-1"></i>Stable</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                <button class="btn btn-sm btn-primary-custom btn-custom predict-btn"
+                                        data-student-id="{{ student.student_id }}"
+                                        data-student-name="{{ student.name }}">
+                                    <i class="bi bi-graph-up-arrow"></i> Predict
+                                </button>
+                                <button class="btn btn-sm btn-primary-custom btn-custom recommendation-btn"
+                                        data-student-id="{{ student.student_id }}"
+                                        data-student-name="{{ student.name }}">
+                                    <i class="bi bi-magic"></i> Recommend
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>No results found</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination-custom">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{% if pagination.has_prev %}{{ url_for('main.student_grid', page=pagination.prev_num, search=search) }}{% endif %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('main.student_grid', page=page_num, search=search) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{% if pagination.has_next %}{{ url_for('main.student_grid', page=pagination.next_num, search=search) }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recommendation Modal -->
+<div class="modal fade" id="recommendationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header-custom">
+                <h5 class="modal-title">
+                    <i class="bi bi-lightbulb"></i>
+                    AI Recommendation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body-custom" id="modalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Analyzing student data and generating recommendation...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prediction Modal -->
+<div class="modal fade" id="predictModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header-custom">
+                <h5 class="modal-title">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    Student Risk Prediction
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body-custom" id="predictModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Analyzing student data and generating prediction...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentModalInstance = null;
+
+document.addEventListener('click', function(e) {
+    const recBtn = e.target.closest('.recommendation-btn');
+    if (recBtn) {
+        const studentId = recBtn.getAttribute('data-student-id');
+        const studentName = recBtn.getAttribute('data-student-name');
+        if (studentId) {
+            showRecommendationModal(studentId, studentName);
+        }
+        return;
+    }
+
+    const predictBtn = e.target.closest('.predict-btn');
+    if (predictBtn) {
+        const studentId = predictBtn.getAttribute('data-student-id');
+        const studentName = predictBtn.getAttribute('data-student-name');
+        if (studentId) {
+            showPredictionModal(studentId, studentName);
+        }
+    }
+});
+
+function showRecommendationModal(studentId, studentName) {
+    const modal = new bootstrap.Modal(document.getElementById('recommendationModal'));
+    document.getElementById('recommendationModal').querySelector('.modal-title').innerHTML =
+        '<i class="bi bi-lightbulb"></i> AI Recommendation - ' + studentName;
+    
+    modal.show();
+    
+    fetch('/api/generate-recommendation/' + studentId, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const modalBody = document.getElementById('modalBody');
+        
+        if (!data.success) {
+            modalBody.innerHTML = `
+                <div class="alert-custom alert-danger-custom">
+                    <i class="bi bi-exclamation-octagon-fill"></i>
+                    <div>
+                        <strong>Error:</strong> ${data.error || 'Failed to generate recommendation'}
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        modalBody.innerHTML = `
+            <div class="animate-fade-in">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card-custom">
+                            <div class="card-header-custom">
+                                <span><i class="bi bi-person"></i> ${data.student_name}</span>
+                                <span class="badge badge-${data.risk_level === 'High Risk' ? 'danger' : 'success'}">${data.risk_level}</span>
+                            </div>
+                            <div class="card-body-custom">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <small class="text-muted">GPA</small>
+                                        <div class="fw-bold">${data.gpa}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Attendance Rate</small>
+                                        <div class="fw-bold">${(data.attendance_rate * 100).toFixed(0)}%</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Financial Status</small>
+                                        <div class="fw-bold">${data.financial_status == 1 ? 'Needs support' : 'Stable'}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Service Requests</small>
+                                        <div class="fw-bold">${data.service_requests_count}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card-custom">
+                            <div class="card-header-custom">
+                                <span><i class="bi bi-graph-up"></i> Recommendation</span>
+                                <span class="badge badge-${data.recommendation_score > 0.7 ? 'danger' : data.recommendation_score > 0.4 ? 'warning' : 'success'}">
+                                    ${data.recommendation_score.toFixed(2)}
+                                </span>
+                            </div>
+                            <div class="card-body-custom">
+                                <div class="mb-3">
+                                    <small class="text-muted">Intervention Level</small>
+                                    <div class="text-center mt-2">
+                                        <span class="badge" style="font-size: 0.9rem; padding: 0.5rem 1rem; background: ${data.recommendation_level.includes('Urgent') ? 'var(--danger)' : data.recommendation_level.includes('Medium') ? 'var(--warning)' : data.recommendation_level.includes('Mild') ? 'var(--warning)' : 'var(--success)'}; color: white;">
+                                            ${data.recommendation_level}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-custom mt-3">
+                    <div class="card-header-custom">
+                        <span><i class="bi bi-file-text"></i> Recommendation Report</span>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="recommendation-text" style="white-space: pre-line; line-height: 1.8;">
+                            ${data.recommendation_text}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    })
+    .catch(error => {
+        document.getElementById('modalBody').innerHTML = `
+            <div class="alert-custom alert-danger-custom">
+                <i class="bi bi-exclamation-octagon-fill"></i>
+                <div>
+                    <strong>Error:</strong> ${error.message || 'Failed to load recommendation'}
+                </div>
+            </div>
+        `;
+    });
+}
+
+function showPredictionModal(studentId, studentName) {
+    const modalEl = document.getElementById('predictModal');
+    const modal = new bootstrap.Modal(modalEl);
+    modalEl.querySelector('.modal-title').innerHTML =
+        '<i class="bi bi-graph-up-arrow"></i> Student Risk Prediction - ' + studentName;
+
+    modal.show();
+
+    fetch('/api/predict-student/' + studentId, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const body = document.getElementById('predictModalBody');
+
+        if (!data.success) {
+            body.innerHTML = `
+                <div class="alert-custom alert-danger-custom">
+                    <i class="bi bi-exclamation-octagon-fill"></i>
+                    <div>
+                        <strong>Error:</strong> ${data.error || 'Failed to generate prediction'}
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const isHigh = data.risk_level === 'High Risk';
+        const percent = (data.risk_probability * 100).toFixed(0);
+
+        body.innerHTML = `
+            <div class="animate-fade-in">
+                <div class="text-center mb-4">
+                    <span class="badge" style="font-size: 1.1rem; padding: 0.6rem 1.4rem; background: ${isHigh ? 'var(--danger)' : 'var(--success)'}; color: white;">
+                        <i class="bi bi-${isHigh ? 'exclamation-triangle' : 'check-circle'} me-1"></i> ${data.risk_level}
+                    </span>
+                </div>
+                <div class="card-custom">
+                    <div class="card-body-custom">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Risk Probability</small>
+                            <small class="fw-bold">${percent}%</small>
+                        </div>
+                        <div class="progress-custom" style="height: 12px;">
+                            <div class="progress-bar-custom" style="width: ${percent}%; background: ${isHigh ? 'var(--danger)' : 'var(--success)'};"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-6">
+                        <small class="text-muted">GPA</small>
+                        <div class="fw-bold">${data.gpa}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Attendance Rate</small>
+                        <div class="fw-bold">${(data.attendance_rate * 100).toFixed(0)}%</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Financial Status</small>
+                        <div class="fw-bold">${data.financial_status == 1 ? 'Needs support' : 'Stable'}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    })
+    .catch(error => {
+        document.getElementById('predictModalBody').innerHTML = `
+            <div class="alert-custom alert-danger-custom">
+                <i class="bi bi-exclamation-octagon-fill"></i>
+                <div>
+                    <strong>Error:</strong> ${error.message || 'Failed to load prediction'}
+                </div>
+            </div>
+        `;
+    });
+}
+
+</script>
+{% endblock %}

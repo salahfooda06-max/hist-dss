@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title"><i class="bi bi-cloud-arrow-up"></i> Sync Status</h1>
+    <div class="d-flex align-items-center gap-2">
+        <span class="status-dot {{ 'online' if status.connected else 'offline' }}"></span>
+        <span class="badge badge-{{ 'success' if status.connected else 'danger' }}">{{ 'Connected' if status.connected else 'Disconnected' }}</span>
+        <form method="POST" action="{{ url_for('main.sync_now') }}">
+            <button type="submit" class="btn btn-primary-custom btn-custom btn-sm">
+                <i class="bi bi-cloud-arrow-up"></i> Sync Now
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card animate-fade-in">
+            <div class="stat-icon primary"><i class="bi bi-layers"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Total Items</div>
+                <div class="stat-value">{{ status.total_queued }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card animate-fade-in">
+            <div class="stat-icon warning"><i class="bi bi-clock"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value">{{ status.pending }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card animate-fade-in">
+            <div class="stat-icon success"><i class="bi bi-check-all"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Synced</div>
+                <div class="stat-value">{{ status.synced }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card animate-fade-in">
+            <div class="stat-icon danger"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-content">
+                <div class="stat-label">Failed</div>
+                <div class="stat-value">{{ status.failed }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-custom animate-fade-in">
+    <div class="card-header-custom">
+        <span><i class="bi bi-bar-chart"></i> Sync Progress</span>
+    </div>
+    <div class="card-body-custom">
+        {% set total = status.total_queued if status.total_queued > 0 else 1 %}
+        {% set synced_pct = ((status.synced / total) * 100)|round(1) %}
+        {% set failed_pct = ((status.failed / total) * 100)|round(1) %}
+
+        <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+                <span class="small fw-semibold">Synced</span>
+                <span class="small">{{ synced_pct }}%</span>
+            </div>
+            <div class="progress-custom" style="height: 10px;">
+                <div class="progress-bar-custom" style="width: {{ synced_pct }}%; background: var(--success);"></div>
+            </div>
+        </div>
+        <div>
+            <div class="d-flex justify-content-between mb-1">
+                <span class="small fw-semibold">Failed</span>
+                <span class="small">{{ failed_pct }}%</span>
+            </div>
+            <div class="progress-custom" style="height: 10px;">
+                <div class="progress-bar-custom" style="width: {{ failed_pct }}%; background: var(--danger);"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

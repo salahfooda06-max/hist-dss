@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block page_title %}Data Integration{% endblock %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title"><i class="bi bi-database-add"></i> Data Integration</h1>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card-custom animate-fade-in">
+            <div class="card-header-custom">
+                <span><i class="bi bi-upload"></i> File Upload</span>
+            </div>
+            <div class="card-body-custom">
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <div class="upload-area" id="uploadArea">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <h5 class="mb-1">Drag files here</h5>
+                        <p class="text-muted mb-0">Or click to select a file</p>
+                        <div class="small text-muted mt-2">Supports CSV and JSON files</div>
+                        <input type="file" name="file" class="d-none" id="fileInput" accept=".csv,.json,.xlsx,application/vnd.ms-excel" required>
+                    </div>
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
+                        <div class="text-muted small" id="fileInfo">No file selected</div>
+                        <button type="submit" class="btn btn-primary-custom btn-custom" id="submitBtn" disabled>
+                            <i class="bi bi-upload"></i> Import Data
+                        </button>
+                    </div>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card-custom animate-fade-in">
+            <div class="card-header-custom">
+                <span><i class="bi bi-info-circle"></i> Data Requirements</span>
+            </div>
+            <div class="card-body-custom">
+                <h6 class="fw-semibold mb-3">Required File Format</h6>
+                <ul class="list-unstyled mb-4">
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> student_id, name, program</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> gpa, courses_count</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> service_requests_count</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> financial_status (0/1)</li>
+                    <li><i class="bi bi-check-circle text-success me-2"></i> attendance_rate (0.0 - 1.0)</li>
+                </ul>
+
+                <h6 class="fw-semibold mb-3">Tips</h6>
+                <div class="alert-custom alert-info-custom">
+                    <i class="bi bi-lightbulb"></i>
+                    <div class="small">
+                        Make sure the file does not contain empty rows and that columns match the requirements.
+                        Duplicate records will be automatically ignored.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: hist_dss_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hist_user
+      POSTGRES_PASSWORD: hist_pass
+      POSTGRES_DB: hist_dss
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hist_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hist_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: hist_dss_web
+    restart: unless-stopped
+    command: gunicorn --bind 0.0.0.0:5000 --timeout 120 --workers 3 "app:create_app()"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://hist_user:hist_pass@db:5432/hist_dss
+      CLOUD_API_URL: http://web:5000/api/sync
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./instance:/app/instance
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hist_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data:
+
+networks:
+  hist_net:
+    driver: bridge

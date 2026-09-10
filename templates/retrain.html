@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title"><i class="bi bi-arrow-repeat"></i> Retrain Model</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card-custom animate-fade-in" style="border-color: var(--danger-light);">
+            <div class="card-body-custom text-center py-5">
+                <div class="mb-4">
+                    <div class="stat-icon danger mx-auto" style="width: 80px; height: 80px; font-size: 2.5rem;"><i class="bi bi-arrow-repeat"></i></div>
+                </div>
+                <h3 class="fw-bold mb-3">Do you want to retrain the model?</h3>
+                <p class="text-muted mb-4">The model will be retrained using available data and performance will be compared across three different algorithms (Decision Tree, Random Forest, Gradient Boosting)</p>
+
+                <div class="alert-custom alert-warning-custom text-start mb-4">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div class="small">
+                        <strong>Warning:</strong> This process may take several minutes depending on data size. Please do not close the page during training.
+                    </div>
+                </div>
+
+                {% if latest_model %}
+                <div class="card bg-light border-0 mb-4 text-start">
+                    <div class="card-body-custom">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="small text-muted">Current Model</div>
+                                <div class="fw-bold">{{ latest_model.type }} v{{ latest_model.version }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted">Current Accuracy</div>
+                                <div class="fw-bold text-success">{{ latest_model.accuracy|round(3) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="POST">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button type="submit" class="btn btn-danger-custom btn-custom px-4">
+                            <i class="bi bi-play-fill"></i> Start Retraining
+                        </button>
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-custom btn-custom px-4">
+                            <i class="bi bi-arrow-right"></i> Cancel & Return
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

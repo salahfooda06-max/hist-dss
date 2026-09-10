@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title"><i class="bi bi-graph-up-arrow"></i> Risk Level Prediction</h1>
+</div>
+
+<div class="row g-4">
+    <!-- Prediction Form -->
+    <div class="col-lg-5">
+        <div class="card-custom animate-fade-in">
+            <div class="card-header-custom">
+                <span><i class="bi bi-input-cursor-text"></i> Student Data</span>
+            </div>
+            <div class="card-body-custom">
+                <form method="POST" id="predictForm">
+                    <div class="form-group">
+                        <label class="form-label">Select Student</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <select id="studentSelect" class="form-select-custom">
+                                <option value="">-- Select a student to auto-fill --</option>
+                                {% for s in students %}
+                                <option value="{{ s.student_id }}">{{ s.name }} ({{ s.student_id }}){% if s.program %} - {{ s.program }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-text">Select a student to auto-fill data, or enter manually.</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">GPA</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-bar-chart"></i></span>
+                            <input type="number" step="0.01" name="gpa" class="form-control-custom" max="4.0" min="0" placeholder="0.00 - 4.00" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Registered Courses</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-book"></i></span>
+                            <input type="number" name="courses_count" class="form-control-custom" min="1" placeholder="Number of courses" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Service Requests Count</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-chat-left-text"></i></span>
+                            <input type="number" name="service_requests_count" class="form-control-custom" min="0" placeholder="0" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Financial Status</label>
+                        <select name="financial_status" class="form-select-custom" required>
+                            <option value="">Select Status</option>
+                            <option value="0">Good (no issues)</option>
+                            <option value="1">At Risk (needs support)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Attendance Rate</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
+                            <input type="number" step="0.01" name="attendance_rate" class="form-control-custom" max="1" min="0" placeholder="0.00 - 1.00" required>
+                        </div>
+                        <div class="form-text">Enter as decimal (example: 0.85 = 85%)</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary-custom btn-custom">
+                            <i class="bi bi-magic"></i> Predict Now
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="col-lg-7">
+        {% if prediction is defined %}
+        <div class="animate-fade-in">
+            <div class="card-custom mb-3">
+                <div class="card-header-custom">
+                    <span><i class="bi bi-clipboard-data"></i> Prediction Result</span>
+                    <span class="badge badge-{{ 'danger' if prediction == 1 else 'success' }}">{{ 'High Risk' if prediction == 1 else 'Low Risk' }}</span>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <div class="prediction-score {{ 'text-danger' if prediction == 1 else 'text-success' }}">
+                                {{ (probability * 100)|round(1) }}%
+                            </div>
+                            <div class="text-muted small">Risk Probability</div>
+                        </div>
+                        <div class="col">
+                            <div class="progress-custom" style="height: 12px;">
+                                <div class="progress-bar-custom" style="width: {{ (probability * 100)|round(0) }}%; background: linear-gradient(90deg, var(--success) 0%, var(--warning) 50%, var(--danger) 100%);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-custom">
+                <div class="card-header-custom">
+                    <span><i class="bi bi-bar-chart-line"></i> Feature Importance</span>
+                    <span class="text-muted small">Model: {{ latest_model.type if latest_model else 'N/A' }}</span>
+                </div>
+                <div class="card-body-custom">
+                    {% if feature_importance %}
+                        {% for feature, importance in feature_importance.items() %}
+                        <div class="feature-bar">
+                            <div class="feature-name">{{ feature }}</div>
+                            <div class="feature-track">
+                                <div class="feature-fill" style="width: {{ (importance * 100)|round(0) }}%;"></div>
+                            </div>
+                            <div class="feature-value">{{ importance|round(3) }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state py-4">
+                            <i class="bi bi-bar-chart"></i>
+                            <p>No feature importance data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if prediction == 1 %}
+            <div class="alert-custom alert-danger-custom mt-3">
+                <i class="bi bi-exclamation-octagon-fill"></i>
+                <div>
+                    <strong>Alert:</strong> This student is classified as high risk.
+                    Please review the case and provide appropriate support.
+                </div>
+            </div>
+            {% else %}
+            <div class="alert-custom alert-success-custom mt-3">
+                <i class="bi bi-check-circle-fill"></i>
+                <div>
+                    <strong>Good:</strong> This student is in the low-risk category.
+                    We recommend periodic follow-up.
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card-custom h-100 d-flex align-items-center justify-content-center">
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-graph-up-arrow" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p class="mt-3 mb-0">Enter student data and click "Predict" to see results</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const studentsData = {{ students_data_json|tojson }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('studentSelect');
+    if (!select) return;
+
+    select.addEventListener('change', function() {
+        const id = this.value;
+        const data = studentsData[id];
+        if (!data) return;
+
+        const set = (name, value) => {
+            const el = document.querySelector('[name="' + name + '"]');
+            if (el) el.value = value;
+        };
+
+        set('gpa', data.gpa);
+        set('courses_count', data.courses_count);
+        set('service_requests_count', data.service_requests_count);
+        set('financial_status', data.financial_status);
+        set('attendance_rate', data.attendance_rate);
+    });
+});
+</script>
+{% endblock %}

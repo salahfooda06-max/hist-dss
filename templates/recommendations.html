@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title"><i class="bi bi-lightbulb"></i> Recommendations</h1>
+</div>
+
+<div class="card-custom animate-fade-in">
+    <div class="card-header-custom">
+        <span><i class="bi bi-people"></i> AI Recommendations</span>
+        <span class="text-muted small">Recommendations Count: {{ recommendations|length }}</span>
+    </div>
+    <div class="card-body-custom p-0">
+        <div class="table-responsive">
+            <table class="table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student</th>
+                        <th>Program</th>
+                        <th>Score</th>
+                        <th>Recommendation Report</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for rec in recommendations %}
+                    <tr>
+                        <td class="text-muted small">{{ rec.rec_id }}</td>
+                        <td class="fw-semibold">{{ rec.student.name if rec.student else '-' }}</td>
+                        <td>{{ rec.student.program if rec.student else '-' }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold">{{ rec.score|round(2) }}</span>
+                                <span class="badge badge-{{ 'danger' if rec.score > 0.7 else 'warning' if rec.score > 0.4 else 'success' }}">
+                                    {{ 'High' if rec.score > 0.7 else 'Medium' if rec.score > 0.4 else 'Low' }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="text-muted small">
+                            {{ rec.recommendation_text or '-' }}
+                        </td>
+                        <td class="text-muted small">{{ rec.generated_at.strftime('%Y-%m-%d %H:%M') if rec.generated_at else '-' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>No recommendations available</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

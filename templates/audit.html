@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title"><i class="bi bi-person-check"></i> Audit Log</h1>
+</div>
+
+<div class="card-custom animate-fade-in">
+    <div class="card-body-custom p-0">
+        <div class="table-responsive">
+            <table class="table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date & Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td class="text-muted small">{{ log.log_id }}</td>
+                        <td>
+                            <div class="fw-semibold">{{ log.timestamp.strftime('%Y-%m-%d') }}</div>
+                            <div class="small text-muted">{{ log.timestamp.strftime('%H:%M:%S') }}</div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-avatar" style="width: 32px; height: 32px; font-size: 0.8rem;">{{ log.user_id[0] if log.user_id else '?' }}</div>
+                                <span>{{ log.user_id }}</span>
+                            </div>
+                        </td>
+                        <td>{{ log.action }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <i class="bi bi-journal-check"></i>
+                                <p>No audit records found</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Decision Support System - HIST Tripoli{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <a href="{{ url_for('main.dashboard') }}" class="sidebar-brand">
+        <div class="brand-icon"><i class="bi bi-diagram-3"></i></div>
+        <div>
+            <span class="brand-text">Decision Support System</span>
+            <span class="brand-sub">HIST Tripoli</span>
+        </div>
+    </a>
+
+    <nav class="sidebar-nav">
+        <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.path == url_for('main.dashboard') %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i>
+            Dashboard
+        </a>
+
+        {% if current_user.role in ['Administrator', 'Extension Officer', 'Faculty Lead'] %}
+        <a href="{{ url_for('main.register_student') }}" class="nav-link {% if request.path == url_for('main.register_student') %}active{% endif %}">
+            <i class="bi bi-person-plus"></i>
+            Register Student
+        </a>
+        <a href="{{ url_for('main.data_integration') }}" class="nav-link {% if request.path == url_for('main.data_integration') %}active{% endif %}">
+            <i class="bi bi-database-add"></i>
+            Data Integration
+        </a>
+        <a href="{{ url_for('main.student_grid') }}" class="nav-link {% if request.path == url_for('main.student_grid') %}active{% endif %}">
+            <i class="bi bi-grid-1x2"></i>
+            Students
+        </a>
+        <a href="{{ url_for('main.predict') }}" class="nav-link {% if request.path == url_for('main.predict') %}active{% endif %}">
+            <i class="bi bi-graph-up-arrow"></i>
+            Prediction
+        </a>
+        {% endif %}
+
+        <a href="{{ url_for('main.recommendations') }}" class="nav-link {% if request.path == url_for('main.recommendations') %}active{% endif %}">
+            <i class="bi bi-lightbulb"></i>
+            Recommendations
+        </a>
+
+        <a href="{{ url_for('main.service_requests') }}" class="nav-link {% if request.path == url_for('main.service_requests') %}active{% endif %}">
+            <i class="bi bi-chat-left-text"></i>
+            Service Requests
+        </a>
+
+        <a href="{{ url_for('main.reports') }}" class="nav-link {% if request.path == url_for('main.reports') %}active{% endif %}">
+            <i class="bi bi-file-earmark-pdf"></i>
+            Reports
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        {% if current_user.role in ['Administrator', 'IT Infrastructure Lead'] %}
+        <a href="{{ url_for('main.sync_status') }}" class="nav-link {% if request.path == url_for('main.sync_status') %}active{% endif %}">
+            <i class="bi bi-cloud-arrow-up"></i>
+            Sync Status
+        </a>
+        {% endif %}
+
+        {% if current_user.role in ['Administrator', 'Institute Director'] %}
+        <a href="{{ url_for('main.audit') }}" class="nav-link {% if request.path == url_for('main.audit') %}active{% endif %}">
+            <i class="bi bi-person-check"></i>
+            Audit Log
+        </a>
+        {% endif %}
+
+        {% if current_user.role == 'Administrator' %}
+        <a href="{{ url_for('main.retrain') }}" class="nav-link {% if request.path == url_for('main.retrain') %}active{% endif %}">
+            <i class="bi bi-arrow-repeat"></i>
+            Retrain Model
+        </a>
+        {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+        <i class="bi bi-shield-lock"></i> Secure & Encrypted System
+    </div>
+</aside>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <!-- Top Header -->
+    <header class="top-header">
+        <div class="header-left">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('main.dashboard') }}" class="breadcrumb-custom">
+                            <i class="bi bi-house-door"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        {% block page_title %}Dashboard{% endblock %}
+                    </li>
+                </ol>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="dropdown">
+                <a class="user-dropdown dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="user-avatar">{{ current_user.name[0] if current_user.name else 'U' }}</div>
+                    <div class="user-info d-none d-md-block">
+                        <div class="name">{{ current_user.name }}</div>
+                        <div class="role">{{ current_user.role }}</div>
+                    </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg">
+                    <li><div class="dropdown-header text-muted small">{{ current_user.email or '' }}</div></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="content-area" style="padding-top: 0; padding-bottom: 0; max-width: none;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show animate-fade-in" role="alert">
+                        {% if category == 'success' %}<i class="bi bi-check-circle-fill"></i>
+                        {% elif category == 'danger' %}<i class="bi bi-x-circle-fill"></i>
+                        {% elif category == 'warning' %}<i class="bi bi-exclamation-triangle-fill"></i>
+                        {% else %}<i class="bi bi-info-circle-fill"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    {% endif %}
+
+    {% if current_user.is_authenticated %}<main class="content-area animate-fade-in">
+        <div class="page-navigation mb-4">
+            <div class="btn-group-custom">
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.dashboard') %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                {% if current_user.role in ['Administrator', 'Extension Officer', 'Faculty Lead'] %}
+                <a href="{{ url_for('main.register_student') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.register_student') %}active{% endif %}">
+                    <i class="bi bi-person-plus"></i> Register Student
+                </a>
+                <a href="{{ url_for('main.data_integration') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.data_integration') %}active{% endif %}">
+                    <i class="bi bi-database-add"></i> Data Integration
+                </a>
+                <a href="{{ url_for('main.student_grid') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.student_grid') %}active{% endif %}">
+                    <i class="bi bi-grid-1x2"></i> Students
+                </a>
+                <a href="{{ url_for('main.predict') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.predict') %}active{% endif %}">
+                    <i class="bi bi-graph-up-arrow"></i> Prediction
+                </a>
+                {% endif %}
+                <a href="{{ url_for('main.recommendations') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.recommendations') %}active{% endif %}">
+                    <i class="bi bi-lightbulb"></i> Recommendations
+                </a>
+                <a href="{{ url_for('main.service_requests') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.service_requests') %}active{% endif %}">
+                    <i class="bi bi-chat-left-text"></i> Service Requests
+                </a>
+                <a href="{{ url_for('main.reports') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.reports') %}active{% endif %}">
+                    <i class="bi bi-file-earmark-pdf"></i> Reports
+                </a>
+                {% if current_user.role in ['Administrator', 'IT Infrastructure Lead'] %}
+                <a href="{{ url_for('main.sync_status') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.sync_status') %}active{% endif %}">
+                    <i class="bi bi-cloud-arrow-up"></i> Sync Status
+                </a>
+                {% endif %}
+                {% if current_user.role in ['Administrator', 'Institute Director'] %}
+                <a href="{{ url_for('main.audit') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.audit') %}active{% endif %}">
+                    <i class="bi bi-person-check"></i> Audit Log
+                </a>
+                {% endif %}
+                {% if current_user.role == 'Administrator' %}
+                <a href="{{ url_for('main.retrain') }}" class="btn btn-outline-custom btn-sm {% if request.path == url_for('main.retrain') %}active{% endif %}">
+                    <i class="bi bi-arrow-repeat"></i> Retrain Model
+                </a>
+                {% endif %}
+            </div>
+        </div>
+{% endif %}
+
+        {% block content %}{% endblock %}
+
+{% if current_user.is_authenticated %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-custom">
+        <div class="mb-1">&copy; 2026 Decision Support System for Counseling Services - HIST Tripoli</div>
+        <div class="small">Designed & Developed by Student Ashraf M.A</div>
+    </footer>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    const main = document.getElementById('mainContent');
+
+    if (sidebar && toggle) {
+        toggle.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                main.classList.toggle('expanded');
+            }
+        });
+    }
+
+    if (sidebar) {
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    }
+
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const fileInfo = document.getElementById('fileInfo');
+
+    if (uploadArea && fileInput) {
+        uploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileInfo(e.dataTransfer.files[0].name);
+            }
+        });
+
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length > 0) {
+                updateFileInfo(fileInput.files[0].name);
+            }
+        });
+    }
+
+    function updateFileInfo(filename) {
+        if (fileInfo) {
+            fileInfo.textContent = filename;
+        }
+        if (submitBtn) {
+            submitBtn.disabled = false;
+        }
+    }
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

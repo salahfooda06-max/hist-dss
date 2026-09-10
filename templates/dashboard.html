@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+    <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i> Main Dashboard</span>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid animate-fade-in">
+    <div class="stat-card">
+        <div class="stat-icon primary"><i class="bi bi-people"></i></div>
+        <div class="stat-content">
+            <div class="stat-label">Total Students</div>
+            <div class="stat-value">{{ students_count }}</div>
+            <div class="stat-trend up"><i class="bi bi-arrow-up"></i> Active</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon success"><i class="bi bi-chat-left-text"></i></div>
+        <div class="stat-content">
+            <div class="stat-label">Service Requests</div>
+            <div class="stat-value">{{ requests_count }}</div>
+            <div class="stat-trend"><i class="bi bi-dot"></i> Open</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon info"><i class="bi bi-lightbulb"></i></div>
+        <div class="stat-content">
+            <div class="stat-label">Recommendations</div>
+            <div class="stat-value">{{ recommendations_count }}</div>
+            <div class="stat-trend"><i class="bi bi-dot"></i> This Semester</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon {{ 'success' if sync_status.connected else 'warning' }}"><i class="bi bi-cloud"></i></div>
+        <div class="stat-content">
+            <div class="stat-label">Sync Status</div>
+            <div class="stat-value">{{ 'Connected' if sync_status.connected else 'Disconnected' }}</div>
+            <div class="stat-trend"><span class="status-dot {{ 'online' if sync_status.connected else 'offline' }}"></span> Cloud</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="animate-fade-in">
+    <h3 class="h5 mb-3 text-muted fw-semibold">Quick Actions</h3>
+    <div class="quick-actions mb-4">
+        {% if current_user.role in ['Administrator', 'Extension Officer', 'Faculty Lead'] %}
+        <a href="{{ url_for('main.data_integration') }}" class="quick-action-card">
+            <div class="action-icon"><i class="bi bi-database-add"></i></div>
+            <div class="action-label">Data Integration</div>
+        </a>
+        <a href="{{ url_for('main.predict') }}" class="quick-action-card">
+            <div class="action-icon" style="background: var(--success-light); color: var(--success);"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="action-label">Predict Student</div>
+        </a>
+        {% endif %}
+        <a href="{{ url_for('main.recommendations') }}" class="quick-action-card">
+            <div class="action-icon" style="background: var(--info-light); color: var(--info);"><i class="bi bi-lightbulb"></i></div>
+            <div class="action-label">Recommendations</div>
+        </a>
+        <a href="{{ url_for('main.reports') }}" class="quick-action-card">
+            <div class="action-icon" style="background: var(--warning-light); color: var(--warning);"><i class="bi bi-file-earmark-pdf"></i></div>
+            <div class="action-label">Reports</div>
+        </a>
+    </div>
+</div>
+
+<!-- Model Info Card -->
+<div class="card-custom animate-fade-in">
+    <div class="card-header-custom">
+        <span><i class="bi bi-cpu"></i> Latest Machine Learning Model</span>
+        {% if latest_model %}
+        <a href="{{ url_for('main.retrain') }}" class="btn btn-outline-custom btn-sm">
+            <i class="bi bi-arrow-repeat"></i> Retrain
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body-custom">
+        {% if latest_model %}
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="p-3 bg-light rounded">
+                        <div class="small text-muted mb-1">Type</div>
+                        <div class="fw-bold">{{ latest_model.type }}</div>
+                        <div class="small text-muted">Version {{ latest_model.version }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-light rounded">
+                        <div class="small text-muted mb-1">Accuracy</div>
+                        <div class="fw-bold text-success">{{ latest_model.accuracy|round(3) }}</div>
+                        <div class="progress-custom mt-2">
+                            <div class="progress-bar-custom" style="width: {{ (latest_model.accuracy * 100) }}%; background: var(--success);"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-light rounded">
+                        <div class="small text-muted mb-1">Recall</div>
+                        <div class="fw-bold text-info">{{ latest_model.recall|round(3) }}</div>
+                        <div class="progress-custom mt-2">
+                            <div class="progress-bar-custom" style="width: {{ (latest_model.recall * 100) }}%; background: var(--info);"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-light rounded">
+                        <div class="small text-muted mb-1">F1 Score</div>
+                        <div class="fw-bold text-primary">{{ latest_model.f1|round(3) }}</div>
+                        <div class="progress-custom mt-2">
+                            <div class="progress-bar-custom" style="width: {{ (latest_model.f1 * 100) }}%; background: var(--primary);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-cpu"></i>
+                <p>No model has been trained yet</p>
+                {% if current_user.role == 'Administrator' %}
+                <a href="{{ url_for('main.retrain') }}" class="btn btn-primary-custom btn-custom mt-3"><i class="bi bi-arrow-repeat"></i> Start Training</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- System Status -->
+{% if current_user.role in ['Administrator', 'IT Infrastructure Lead'] %}
+<div class="row g-3 mt-1 animate-fade-in">
+    <div class="col-md-6">
+        <div class="card-custom h-100">
+            <div class="card-header-custom"><i class="bi bi-cloud"></i> Cloud Status</div>
+            <div class="card-body-custom">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="status-dot {{ 'online' if sync_status.connected else 'offline' }}"></span>
+                    <span class="fw-bold ms-2">{{ 'Connected' if sync_status.connected else 'Disconnected' }}</span>
+                </div>
+                <div class="row g-2">
+                    <div class="col-6"><div class="p-2 bg-light rounded text-center"><div class="small text-muted">Pending</div><div class="fw-bold">{{ sync_status.pending }}</div></div></div>
+                    <div class="col-6"><div class="p-2 bg-light rounded text-center"><div class="small text-muted">Synced</div><div class="fw-bold text-success">{{ sync_status.synced }}</div></div></div>
+                    <div class="col-6"><div class="p-2 bg-light rounded text-center"><div class="small text-muted">Failed</div><div class="fw-bold text-danger">{{ sync_status.failed }}</div></div></div>
+                    <div class="col-6"><div class="p-2 bg-light rounded text-center"><div class="small text-muted">Total</div><div class="fw-bold">{{ sync_status.total_queued }}</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-custom h-100">
+            <div class="card-header-custom"><i class="bi bi-person-vcard"></i> User Info</div>
+            <div class="card-body-custom">
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar" style="width: 48px; height: 48px; font-size: 1.25rem;">{{ current_user.name[0] if current_user.name else 'U' }}</div>
+                    <div class="me-3">
+                        <div class="fw-bold">{{ current_user.name }}</div>
+                        <div class="text-muted small">{{ current_user.role }}</div>
+                        <div class="text-muted small">{{ current_user.email or '' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

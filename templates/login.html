@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block page_title %}Login{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card animate-fade-in">
+        <div class="auth-logo">
+            <div class="logo-icon"><i class="bi bi-diagram-3"></i></div>
+            <h1>Decision Support System</h1>
+            <p>HIST Tripoli Institute - Counseling Services</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {% if category == 'success' %}<i class="bi bi-check-circle-fill"></i>
+                        {% elif category == 'danger' %}<i class="bi bi-x-circle-fill"></i>
+                        {% elif category == 'warning' %}<i class="bi bi-exclamation-triangle-fill"></i>
+                        {% else %}<i class="bi bi-info-circle-fill"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <div class="input-group">
+                    <input type="email" name="email" class="form-control-custom" placeholder="name@hist.edu.ly" required>
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" name="password" class="form-control-custom" placeholder="••••••••" required>
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                </div>
+            </div>
+            <div class="d-grid gap-2 mb-3">
+                <button type="submit" class="btn btn-primary-custom btn-custom">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Login
+                </button>
+            </div>
+            <div class="text-center text-muted small">
+                <i class="bi bi-shield-check"></i> Encrypted with highest security standards
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
