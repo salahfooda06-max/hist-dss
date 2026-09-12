@@ -12,7 +12,6 @@ dist/
 *.spec
 HIST_DSS_Portable/
 HIST_DSS_Portable_v1.0.zip
-instance/local.db
-data_sample.csv
+instance/
 deploy-package.zip
 *.egg-info/
