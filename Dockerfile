@@ -16,4 +16,4 @@ RUN mkdir -p /app/instance
 
 EXPOSE 5000
 
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 2 app:create_app()"]
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "--timeout", "120", "--workers", "2", "wsgi:app"]
