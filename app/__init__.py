@@ -1,7 +1,9 @@
 from flask import Flask
 from flask_login import LoginManager
 import os
+import time
 from sqlalchemy import inspect, text
+from sqlalchemy.exc import OperationalError
 
 from models.db import db
 
@@ -54,9 +56,30 @@ def create_app(config_name=None):
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///local.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
     
     from models.db import init_db, User
     db.init_app(app)
+    
+    # Wait for database to be ready (for PostgreSQL on Render)
+    max_retries = 30
+    retry_delay = 2
+    for attempt in range(max_retries):
+        try:
+            with app.app_context():
+                db.engine.connect()
+            print(f"Database connection successful on attempt {attempt + 1}")
+            break
+        except OperationalError as e:
+            if attempt < max_retries - 1:
+                print(f"Database not ready (attempt {attempt + 1}/{max_retries}), waiting {retry_delay}s... {e}")
+                time.sleep(retry_delay)
+            else:
+                print(f"Database connection failed after {max_retries} attempts: {e}")
+                raise
     
     with app.app_context():
         db.create_all()
