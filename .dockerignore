@@ -1,5 +1,4 @@
 venv/
-venv\
 __pycache__/
 *.pyc
 *.pyo
@@ -15,3 +14,5 @@ HIST_DSS_Portable/
 HIST_DSS_Portable_v1.0.zip
 instance/local.db
 data_sample.csv
+deploy-package.zip
+*.egg-info/
