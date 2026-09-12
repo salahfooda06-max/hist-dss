@@ -54,7 +54,15 @@ def create_app(config_name=None):
                 static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static'),
                 static_url_path='/static')
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///local.db')
+    
+    # Require DATABASE_URL on Render (no SQLite fallback in production)
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        # Only allow SQLite fallback for local development
+        if os.environ.get('RENDER') or os.environ.get('FLASK_DEBUG') != '1':
+            raise RuntimeError("DATABASE_URL environment variable is required but not set")
+        database_url = 'sqlite:///local.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_pre_ping': True,
@@ -65,6 +73,7 @@ def create_app(config_name=None):
     db.init_app(app)
     
     # Wait for database to be ready (for PostgreSQL on Render)
+    # This must complete BEFORE any db operations
     max_retries = 30
     retry_delay = 2
     for attempt in range(max_retries):
